@@ -38,6 +38,7 @@ datatype rhythm_note
   | EIGHTH of note
   | SIXTEENTH of note
   | DOTTED of rhythm_note
+  | TRIPLET of rhythm_note * rhythm_note * rhythm_note
 
 datatype rhythm 
   = RHYTHM of rhythm_note
@@ -88,6 +89,8 @@ fun val_of (WHOLE     _) = 1.0
   | val_of (QUARTER   _) = 0.25
   | val_of (EIGHTH    _) = 0.125
   | val_of (SIXTEENTH _) = 0.0625
+  | val_of (TRIPLET (n1, n2, n3)) = 
+    2.0 * ((val_of n1 + val_of n2 + val_of n3) / 3.0)
   | val_of (DOTTED n) = 
       let fun sum_dots (DOTTED n) x = sum_dots n (x + 1)
             | sum_dots n x = val_of n * half_sigma_geo_series_to x
@@ -103,8 +106,13 @@ fun bar_invariant (BAR (_, (num,den), xs)) =
 val validate_bars = List.all bar_invariant
 
 exception MalformedSong
+
 fun validate_song (SONG (_, xs)) = 
     if validate_bars xs then () 
     else raise MalformedSong
+
+(* ---------------------------------------------- *)
+
+
 
 end

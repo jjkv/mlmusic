@@ -22,6 +22,7 @@ signature Music = sig
      | EIGHTH of note
      | SIXTEENTH of note
      | DOTTED of rhythm_note
+     | TRIPLET of rhythm_note * rhythm_note * rhythm_note
 
     datatype rhythm 
      = RHYTHM of rhythm_note
