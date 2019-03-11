@@ -131,8 +131,8 @@ fun note_events (r : rhythm) : Midi.midi_data  =
 	    end
           | conv (TRIPLET (r1, r2, r3)) = 
 	    let val av_dur = 2.0 * ((val_of r1 + val_of r2 + val_of r3) / 3.0)
-	        val mk_note = Midi.mk_play_note_event av_dur
-		val ps = (List.map (List.map translate_reps) o List.map pitches_of_ru) [r1, r2, r3]
+	        val mk_note = Midi.mk_play_note_event (av_dur / 3.0)
+		val ps = (List.map (List.map translate_reps) o List.map pitches_of_ru) [r3, r2, r1]
 	    in List.foldl (fn (ns, acc) => (List.concat o List.map mk_note) ns @ acc) [] ps
 	    end
           | conv _ = raise Unimplemented

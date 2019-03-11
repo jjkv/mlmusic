@@ -76,9 +76,10 @@ fun std_trk_cnk_with n =
     in hdr @ pad4 [byte_of_ascii n] end
 *)
 
+(* setting max length as 80 00 for now *)
 fun std_trk_cnk_with n = 
     let val hdr = bytes_of_str "4d 54 72 6b"
-    in hdr @ pad4 [byte_of_ascii 32, byte_of_ascii 0] end
+    in hdr @ pad4 [byte_of_ascii 64, byte_of_ascii 0] end
 
 fun write_midistr fname = writeBytes fname o List.map byte_of_hexstr o hexstrs_of_str
 
