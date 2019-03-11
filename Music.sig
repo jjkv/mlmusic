@@ -15,18 +15,18 @@ signature Music = sig
      | NOTE of accidental
      | CHORD of accidental list
 
-    datatype rhythm_note 
+    datatype rhythm_unit
      = WHOLE of note
      | HALF of note
      | QUARTER of note
      | EIGHTH of note
      | SIXTEENTH of note
-     | DOTTED of rhythm_note
+     | DOTTED of rhythm_unit
 
     datatype rhythm 
-     = RHYTHM of rhythm_note
-     | TRIPLET of rhythm_note * rhythm_note * rhythm_note
-     | TIE of rhythm_note * rhythm
+     = RHYTHM of rhythm_unit
+     | TRIPLET of rhythm_unit * rhythm_unit * rhythm_unit
+     | TIE of rhythm_unit * rhythm
 
     type meter
     val METER : int * int -> meter
@@ -45,4 +45,6 @@ signature Music = sig
     val bar_invariant : measure -> bool
 
     val validate_song : music -> unit
+
+    val save_as_midi : string -> music -> word8 list
 end
