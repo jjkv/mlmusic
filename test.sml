@@ -1,0 +1,1 @@
+fun mk_tempo_event bpm = 1.0 / (Real.fromInt bpm * 6000000.0)

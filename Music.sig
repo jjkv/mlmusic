@@ -47,4 +47,5 @@ signature Music = sig
     val validate_song : music -> unit
 
     val save_as_midi : string -> music -> word8 list
+
 end

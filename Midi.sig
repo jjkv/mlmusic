@@ -15,7 +15,9 @@ signature Midi = sig
     val mk_timesig_event : int -> int -> midi_data
 
     (* returns 2 events, on and off *) 
-    val mk_play_note_event : real -> note -> midi_data
+    val mk_play_note_event : real -> note -> real option -> midi_data
+
+    val mk_play_chord_event : real -> note list -> real option  -> midi_data
 
     val end_of_trk :  midi_data
 

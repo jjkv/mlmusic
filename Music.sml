@@ -120,23 +120,35 @@ fun val_of (WHOLE     _) = 1.0
       in sum_dots n 1
       end 
 
+
+(* needs MAJOR overhaul to support chords *)
+          
+(* return wait option, take rest *)
 exception Unimplemented
-fun note_events (r : rhythm) : Midi.midi_data  = 
+fun note_events r wait = 
     let fun translate_reps (P (chr, oct), 0) = (NONE, chr, oct)
           | translate_reps (P (chr, oct), m) = (SOME m, chr, oct)
         fun conv (RHYTHM r) = 
-            let val mk_note = Midi.mk_play_note_event (val_of r)
-            val pitches = List.map translate_reps (pitches_of_ru r)
-        in (List.concat o List.map mk_note) pitches
-        end
+            let val dur = val_of r
+                val wait' = getOpt (wait, 0.0)
+                val mk_note = (fn n => Midi.mk_play_note_event dur n NONE)
+                val pitches = List.map translate_reps (pitches_of_ru r)
+            in (case pitches
+                 of [] => (let val _ = print("cant happen") in ([], SOME (wait' + dur)) end)
+                 | (x::[]) =>
+                    let val mk_note = (fn n => Midi.mk_play_note_event dur n (SOME wait'))
+                        val note_events = (mk_note x, NONE)
+                    in note_events end
+                 | (_::_) => (Midi.mk_play_chord_event dur pitches (SOME wait'), NONE))
+            end
           | conv (TRIPLET (r1, r2, r3)) = 
-        let val av_dur = 2.0 * ((val_of r1 + val_of r2 + val_of r3) / 3.0)
-            val mk_note = Midi.mk_play_note_event (av_dur / 3.0)
-        val ps = (List.map (List.map translate_reps) o List.map pitches_of_ru) [r3, r2, r1]
-        in List.foldl (fn (ns, acc) => (List.concat o List.map mk_note) ns @ acc) [] ps
-        end
+            let val av_dur = 2.0 * ((val_of r1 + val_of r2 + val_of r3) / 3.0)
+                val mk_note = (fn n => Midi.mk_play_note_event (av_dur / 3.0) n NONE)
+                val ps = (List.map (List.map translate_reps) o List.map pitches_of_ru) [r3, r2, r1]
+            in (List.foldl (fn (ns, acc) => (List.concat o List.map mk_note) ns @ acc) [] ps, NONE)
+            end
           | conv _ = raise Unimplemented
-    in let val _ = print("note\n") in conv r end 
+    in let val _ = print("note\n") in conv r end
     end
 
 fun bar_invariant (BAR (_, (num,den), xs)) =
@@ -157,7 +169,7 @@ fun validate_song (SONG (_, xs)) =
     else raise MalformedSong
 
 (* parsing code --------------------------------------------------------------------- *)
-
+               
 fun save_as_midi fname (SONG (bpm, bars)) =
     let val header = Midi.std_onetrk_hdr
         val set_tempo = Midi.mk_tempo_event
@@ -179,7 +191,10 @@ fun save_as_midi fname (SONG (bpm, bars)) =
         let val _ = print("bar\n")
             val m' = update_meter (n, d)
             val t' = update_tempo (getOpt (tc, !cur_tempo))
-            val notes = (List.concat o List.map note_events) xs
+            val note_list = (fn (r, (wait, bytes)) =>
+                                let val (ns, wait') = note_events r wait
+                                in (wait', bytes @ ns) end)   
+            val (_, notes) = List.foldl note_list (NONE, []) xs
         in bytes @ m' @ t' @ notes
         end
     val music_data = init_t @ init_ts @ (List.foldl parse [] bars) @ Midi.end_of_trk
