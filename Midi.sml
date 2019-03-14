@@ -154,14 +154,13 @@ fun mk_note_event b dur (a, c, oct) =
         val onoroff = if b then noteon_data else noteoff_data
     in time @ onoroff a (c, oct) end
 
+(* the following 2 methods could be collapsed into one, or implemented in terms of on another *)        
 fun mk_play_note_event dur (a, c, oct) wait =
     let val _ = print(Real.toString (getOpt (wait, 0.0)))                     
         val on = mk_note_event true (getOpt (wait, 0.0)) (a, c, oct)
         val off = mk_note_event false dur (a, c, oct)
     in on @ off end
 
-
-exception EmptyChord
 fun mk_play_chord_event dur (p::ps) wait =
     let val mkon = mk_note_event true (getOpt (wait, 0.0))
         val mkon' = mk_note_event true 0.0
@@ -169,7 +168,7 @@ fun mk_play_chord_event dur (p::ps) wait =
         val mkoff' = mk_note_event false 0.0
         val collapse = fn m => List.concat o List.map m
     in mkon p @ (collapse mkon' ps) @ mkoff p @ (collapse mkoff' ps) end
-  | mk_play_chord_event _ [] _ = raise EmptyChord
+  | mk_play_chord_event _ [] _ = []
 
 val end_of_trk = bytes_of_str "00 ff 2f 00"
 
